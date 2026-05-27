@@ -1,4 +1,4 @@
-const CACHE_NAME = "ava-strong-90-v4";
+const CACHE_NAME = "ava-strong-90-v5";
 const ASSETS = [
   "./",
   "./index.html",
