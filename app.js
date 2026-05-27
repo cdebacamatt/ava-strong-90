@@ -7,7 +7,7 @@ const phases = [
     name: "Foundation",
     range: "Sessions 1-12",
     focus: "Learn the machines, own clean reps, leave with confidence.",
-    rule: "2-3 sets, RPE 6-7, stop with 2-4 reps left.",
+    rule: "Do 2-3 rounds. Stop while she still has 2-4 good reps left.",
     sessions: [1, 12],
   },
   {
@@ -15,7 +15,7 @@ const phases = [
     name: "Build",
     range: "Sessions 13-26",
     focus: "Add weight slowly, build stamina, strengthen the base position.",
-    rule: "3 sets, RPE 7-8, add weight after top reps feel clean.",
+    rule: "Do 3 rounds. Add a little weight only when the top reps feel clean.",
     sessions: [13, 26],
   },
   {
@@ -23,7 +23,7 @@ const phases = [
     name: "Performance",
     range: "Sessions 27-39",
     focus: "Turn strength into repeatable competition energy.",
-    rule: "3-4 sets, RPE 7-8, sharper reps, never sloppy maxes.",
+    rule: "Do 3-4 rounds. Keep every rep sharp; no sloppy max attempts.",
     sessions: [27, 39],
   },
 ];
@@ -412,6 +412,49 @@ const badges = [
   { id: "barbell", icon: "🏋️", name: "Barbell Boss", text: "First Build phase workout logged." },
 ];
 
+const glossaryTerms = [
+  {
+    term: "Set",
+    simple: "One round of an exercise.",
+    example: "2 sets of leg press means she does one round, rests, then does one more round.",
+  },
+  {
+    term: "Rep",
+    simple: "One clean time doing the move.",
+    example: "10 reps means press the machine out and back 10 controlled times.",
+  },
+  {
+    term: "Rest",
+    simple: "The break between rounds.",
+    example: "Rest 75 seconds before starting the next round.",
+  },
+  {
+    term: "Weight",
+    simple: "How heavy the machine or dumbbells were.",
+    example: "If the pin is at 35 lb, log 35.",
+  },
+  {
+    term: "Effort",
+    simple: "How hard the set felt.",
+    example: "6 feels easy, 7 feels good, 8 feels hard, 9 is too hard for most days.",
+  },
+  {
+    term: "RPE",
+    simple: "A trainer word for effort.",
+    example: "She can use the app's Effort box instead of worrying about the term RPE.",
+  },
+  {
+    term: "PR",
+    simple: "Personal record, her best logged weight on a move.",
+    example: "If she leg presses 70 lb for the first time, that can become a PR.",
+  },
+  {
+    term: "Phase",
+    simple: "A part of the 90-day plan.",
+    example: "Foundation is the first phase where she learns machines and clean form.",
+  },
+];
+
 let state = loadState();
 let selectedWorkoutId = recommendedWorkout().id;
 let selectedChartExerciseId = "leg-press";
@@ -470,7 +513,16 @@ function showView(viewId) {
     if (active) tab.setAttribute("aria-current", "page");
     else tab.removeAttribute("aria-current");
   });
+  scrollToTop();
   if (viewId === "progressView") drawProgressChart();
+}
+
+function scrollToTop() {
+  requestAnimationFrame(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+  });
 }
 
 function renderToday() {
@@ -487,7 +539,7 @@ function renderToday() {
       <h2 class="hero-title" id="todayTitle">${selected.title}</h2>
       <p class="hero-copy">${selected.purpose}</p>
       <div class="hero-grid">
-        <div class="stat-tile"><span class="stat-value">${phase.name}</span><span class="stat-label">Phase</span></div>
+        <div class="stat-tile stat-phase"><span class="stat-label">Current phase</span><span class="stat-value">${phase.name}</span></div>
         <div class="stat-tile"><span class="stat-value">${selected.minutes}</span><span class="stat-label">Time</span></div>
         <div class="stat-tile"><span class="stat-value">${progress}%</span><span class="stat-label">90-day path</span></div>
       </div>
@@ -495,6 +547,7 @@ function renderToday() {
 
     ${renderCompetitionBanner()}
     ${renderCheckIn()}
+    ${renderGlossaryPreview()}
 
     <section class="section">
       <div class="progress-rail" aria-label="${progress}% complete">
@@ -620,6 +673,29 @@ function renderCheckIn() {
   `;
 }
 
+function renderGlossaryPreview() {
+  return `
+    <section class="section glossary-help">
+      <details>
+        <summary>New to gym words? Tap here.</summary>
+        <div class="glossary-grid compact">
+          ${glossaryTerms
+            .slice(0, 6)
+            .map(
+              (item) => `
+            <article class="glossary-term">
+              <h3>${item.term}</h3>
+              <p>${item.simple}</p>
+            </article>`,
+            )
+            .join("")}
+        </div>
+        <p class="mini-copy">The full glossary is in the Moves tab.</p>
+      </details>
+    </section>
+  `;
+}
+
 function adaptiveCopy(workout) {
   const check = checkInForToday();
   if (!check.energy && !check.soreness) {
@@ -646,9 +722,9 @@ function renderWorkoutExercise(item, phase) {
         </a>
       </div>
       <div class="rx-grid">
-        <div class="rx-box"><span class="rx-label">Sets</span><span class="rx-value">${phaseSets}</span></div>
-        <div class="rx-box"><span class="rx-label">Reps</span><span class="rx-value">${item.reps}</span></div>
-        <div class="rx-box"><span class="rx-label">Rest</span><span class="rx-value">${item.rest}</span></div>
+        <div class="rx-box"><span class="rx-label">Rounds</span><span class="rx-value">${phaseSets}</span><span class="rx-help">sets</span></div>
+        <div class="rx-box"><span class="rx-label">Clean reps</span><span class="rx-value">${item.reps}</span><span class="rx-help">times</span></div>
+        <div class="rx-box"><span class="rx-label">Break</span><span class="rx-value">${item.rest}</span><span class="rx-help">rest</span></div>
       </div>
       <details class="exercise-more">
         <summary>Form cues</summary>
@@ -659,9 +735,9 @@ function renderWorkoutExercise(item, phase) {
       </details>
       ${target ? `<div class="progression-tip">${target}</div>` : ""}
       <div class="log-grid">
-        <label class="log-field"><span>Weight</span><input inputmode="decimal" name="${item.id}-weight" placeholder="${previous.weight || "lbs"}" /></label>
-        <label class="log-field"><span>Reps</span><input inputmode="numeric" name="${item.id}-reps" placeholder="${previous.reps || item.reps}" /></label>
-        <label class="log-field"><span>RPE</span><select name="${item.id}-rpe"><option value="">-</option>${[6, 7, 8, 9].map((n) => `<option>${n}</option>`).join("")}</select></label>
+        <label class="log-field"><span>Weight</span><input inputmode="decimal" name="${item.id}-weight" placeholder="${previous.weight || "lbs"}" /><small>How heavy</small></label>
+        <label class="log-field"><span>Clean reps</span><input inputmode="numeric" name="${item.id}-reps" placeholder="${previous.reps || item.reps}" /><small>How many</small></label>
+        <label class="log-field"><span>Effort</span><select name="${item.id}-rpe"><option value="">Pick</option><option value="6">6 easy</option><option value="7">7 good</option><option value="8">8 hard</option><option value="9">9 too hard</option></select><small>How it felt</small></label>
       </div>
     </article>
   `;
@@ -759,11 +835,13 @@ function renderLibrary(filter = "All", query = "") {
   views.libraryView.innerHTML = `
     <section class="section" style="margin-top:0">
       <h2 id="libraryTitle">Move Library</h2>
+      <p class="mini-copy">Search a machine name, then tap the video button for a form demo.</p>
       <input class="search-input" id="librarySearch" type="search" placeholder="Search moves or equipment" value="${escapeAttr(query)}" />
       <div class="filter-row">
         ${categories.map((category) => `<button class="pill ${category === filter ? "is-active" : ""}" data-filter="${category}" type="button">${category}</button>`).join("")}
       </div>
     </section>
+    ${renderGlossarySection()}
     <section class="section">
       <div class="exercise-list">
         ${exercises.length ? exercises.map(renderLibraryCard).join("") : `<div class="empty-state">No moves match that search.</div>`}
@@ -777,6 +855,31 @@ function renderLibrary(filter = "All", query = "") {
   views.libraryView.querySelectorAll("[data-filter]").forEach((button) => {
     button.addEventListener("click", () => renderLibrary(button.dataset.filter, query));
   });
+}
+
+function renderGlossarySection() {
+  return `
+    <section class="section glossary-section">
+      <div class="section-head">
+        <div>
+          <h2>Gym Words</h2>
+          <p>Plain-English meanings for the words she will see in workouts.</p>
+        </div>
+      </div>
+      <div class="glossary-grid">
+        ${glossaryTerms
+          .map(
+            (item) => `
+          <article class="glossary-term">
+            <h3>${item.term}</h3>
+            <p>${item.simple}</p>
+            <span>${item.example}</span>
+          </article>`,
+          )
+          .join("")}
+      </div>
+    </section>
+  `;
 }
 
 function renderLibraryCard(exercise) {
@@ -1014,7 +1117,7 @@ function saveWorkout(workout, phase) {
 
   const hasData = entries.some((entry) => entry.weight || entry.reps || entry.rpe);
   if (!hasData) {
-    showToast("Add at least one weight, rep count, or RPE before saving.");
+    showToast("Add at least one weight, clean rep count, or effort before saving.");
     return;
   }
 
